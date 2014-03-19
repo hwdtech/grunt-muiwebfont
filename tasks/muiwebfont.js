@@ -25,64 +25,77 @@ var path = require('path'),
 module.exports = function (grunt) {
 
     grunt.registerMultiTask('muiwebfont', 'Download, minify and generate webfonts', function () {
+        this.requiresConfig([this.name, this.target, 'dest'].join('.'));
 
-        var options = this.options({
+        var o = this.options({
             zipUrl: 'https://github.com/Templarian/WindowsIcons/archive/master.zip',
             svgEntry: 'WindowsIcons-master/WindowsPhone/svg',
-            font: 'modernuiicons',
+            fontName: 'modernuiicons',
+            rename: path.basename,
             size: 76,
-            compression: {}
-        });
-
-        _.extend(options, {
-            compressedEntry: 'svgmin',
-            zipFileName: 'modernuiicons.zip',
+            compression: {},
             cacheDir: temp.mkdirSync()
         });
 
-        grunt.file.mkdir(options.cacheDir);
+        _.extend(o, {
+            compressedEntry: 'svgmin',
+            zipFileName: 'modernuiicons.zip',
+            destDir: this.files[0].dest
+        });
+
+        grunt.file.mkdir(o.cacheDir);
+        grunt.file.mkdir(o.destDir);
 
         async.waterfall([
-            downloadZip.bind(null, options),
-            extractZip.bind(null, options),
-            processSvg.bind(null, options)
+            downloadZip.bind(null, o),
+            extractZip.bind(null, o),
+            processSvg.bind(null, o),
+            generateFont.bind(null, o)
         ], this.async());
 
-        function downloadZip(options, next) {
-            var zipPath = path.join(options.cacheDir, options.zipFileName);
+        function downloadZip(o, next) {
+            var zipPath = path.join(o.cacheDir, o.zipFileName);
 
             if (grunt.file.exists(zipPath)) {
-                grunt.log.writeln(chalk.green(' + ') + 'Zip found. Skip downloading');
+                grunt.log.writeln(chalk.green(' ✓ ') + 'Zip found. Skip downloading.');
                 next();
             } else {
-                grunt.log.writeln('Downloading ' + options.zipUrl + '...');
-                request.get(options.zipUrl)
+                grunt.log.writeln('Downloading ' + o.zipUrl + '...');
+                request.get(o.zipUrl)
                     .pipe(fs.createWriteStream(zipPath))
                     .on('close', function () {
-                        grunt.log.writeln(chalk.green(' + ') + options.zipFileName + ' downloaded to ' + zipPath);
+                        grunt.log.writeln(chalk.green(' ✓ ') + o.zipFileName + ' downloaded to ' + zipPath);
                         next();
                     })
                     .on('error', next);
             }
         }
 
-        function extractZip(options, next) {
+        function extractZip(o, next) {
             try {
-                var zipPath = path.join(options.cacheDir, options.zipFileName),
+                if (grunt.file.exists(path.join(o.cacheDir, o.svgEntry))) {
+                    grunt.log.writeln('Svg icons found. Skip extraction.');
+                } else {
+                    var zipPath = path.join(o.cacheDir, o.zipFileName),
                     zip = new AdmZip(zipPath);
-
-                grunt.log.writeln('Extracting files...');
-                zip.extractAllTo(options.cacheDir, true);
-                grunt.log.writeln(chalk.green(' + ') + options.zipFileName + ' extracted to ' + options.cacheDir);
+                    grunt.log.writeln('Extracting files...');
+                    zip.extractAllTo(o.cacheDir, true);
+                    grunt.log.writeln(chalk.green(' ✓ ') + o.zipFileName + ' extracted to ' + o.cacheDir);
+                }
                 next();
             } catch (e) {
                 next(e);
             }
         }
 
-        function processSvg(options, next) {
+        function processSvg(o, next) {
             var processFn = require('../lib/svgmin');
-            processFn(grunt, options, next);
+            processFn(grunt, o, next);
+        }
+
+        function generateFont(o, next) {
+            var generatorFn = require('../lib/fontgenerator');
+            generatorFn(grunt, o, next);
         }
 
     });

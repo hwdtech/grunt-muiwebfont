@@ -16,7 +16,14 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         muiwebfont: {
-            all: {}
+            options: {
+                cacheDir: '.tmp'
+            },
+            all: {
+                dest: 'resources/fonts'
+            }
         }
     });
+
+    grunt.registerTask('default', ['muiwebfont']);
 };

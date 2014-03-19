@@ -30,6 +30,8 @@
     "pretty-bytes": "~0.1.0",
     "svgo": "~0.4.4",
     "adm-zip": "~0.4.4",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "svgicons2svgfont": "0.0.9",
+    "temp": "^0.7.0"
   }
 }

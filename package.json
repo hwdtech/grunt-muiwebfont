@@ -1,0 +1,22 @@
+{
+  "name": "grunt-modernuiicons",
+  "version": "0.0.1",
+  "description": "Download, minify and generate web fonts",
+  "scripts": {
+    "test": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/tiktokcoach/grunt-modernuiicons.git"
+  },
+  "keywords": [
+    "modernuiicons",
+    "icons",
+    "webfont"
+  ],
+  "author": "Tik-Tok Coach",
+  "license": "Apache v2 License",
+  "bugs": {
+    "url": "https://github.com/tiktokcoach/grunt-modernuiicons/issues"
+  }
+}

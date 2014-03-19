@@ -81,7 +81,7 @@ module.exports = function (grunt) {
         }
 
         function processSvg(options, next) {
-            var processFn = require('./lib/svgmin');
+            var processFn = require('../lib/svgmin');
             processFn(grunt, options, next);
         }
 

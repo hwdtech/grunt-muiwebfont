@@ -20,7 +20,7 @@ module.exports = function (grunt) {
                 cacheDir: '.tmp'
             },
             all: {
-                dest: 'resources/fonts'
+                dest: '.tmp/fonts'
             }
         }
     });

@@ -5,7 +5,6 @@
 .glyph {
   &:before {
     font-family: 'Modern UI Icons';
-    font-size: <%= fontSize %>px;
     display: inline-block;
     vertical-align: middle;
     line-height: 1;

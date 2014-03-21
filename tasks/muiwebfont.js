@@ -28,16 +28,15 @@ module.exports = function (grunt) {
         this.requiresConfig([this.name, this.target, 'dest'].join('.'));
 
         var o = this.options({
-            zipUrl: 'https://github.com/Templarian/WindowsIcons/archive/master.zip',
-            svgEntry: 'WindowsIcons-master/WindowsPhone/svg',
             fontName: 'modernuiicons',
             rename: path.basename,
             size: 76,
-            compression: {},
             cacheDir: temp.mkdirSync()
         });
 
         _.extend(o, {
+            zipUrl: 'https://github.com/Templarian/WindowsIcons/archive/master.zip',
+            svgEntry: 'WindowsIcons-master/WindowsPhone/svg',
             compressedEntry: 'svgmin',
             zipFileName: 'modernuiicons.zip',
             destDir: this.files[0].dest

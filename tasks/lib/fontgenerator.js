@@ -66,7 +66,7 @@ module.exports = function (grunt, o, next) {
         done();
     }
 
-    async.series([
+    async.waterfall([
         generateSvgFont,
         generateFonts
     ], next);

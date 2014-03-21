@@ -22,7 +22,7 @@ module.exports = function (grunt) {
             all: {
                 dest: 'resources/fonts',
                 destSvg: 'resources/images/svg',
-                destScss: 'sass/etc/'
+                destScss: 'sass/etc/mixins.scss'
             }
         }
     });

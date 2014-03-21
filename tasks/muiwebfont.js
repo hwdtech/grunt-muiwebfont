@@ -20,7 +20,10 @@ var path = require('path'),
     fs = require('fs'),
     AdmZip = require('adm-zip'),
     async = require('async'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    SVGO = require('svgo'),
+    eachAsync = require('each-async'),
+    prettyBytes = require('pretty-bytes');
 
 module.exports = function (grunt) {
 
@@ -49,31 +52,32 @@ module.exports = function (grunt) {
         grunt.file.mkdir(o.destDir);
 
         async.waterfall([
-            downloadZip.bind(null, o),
-            extractZip.bind(null, o),
-            processSvg.bind(null, o),
-            generateFont.bind(null, o)
+            downloadZip,
+            extractZip,
+            processSvg,
+            generateFont,
+            generateScss
         ], this.async());
 
-        function downloadZip(o, next) {
+        function downloadZip(done) {
             var zipPath = path.join(o.cacheDir, o.zipFileName);
 
             if (grunt.file.exists(zipPath)) {
                 grunt.log.writeln(chalk.green(' ✓ ') + 'Zip found. Skip downloading.');
-                next();
+                done();
             } else {
                 grunt.log.writeln('Downloading ' + o.zipUrl + '...');
                 request.get(o.zipUrl)
                     .pipe(fs.createWriteStream(zipPath))
                     .on('close', function () {
                         grunt.log.writeln(chalk.green(' ✓ ') + o.zipFileName + ' downloaded to ' + zipPath);
-                        next();
+                        done();
                     })
-                    .on('error', next);
+                    .on('error', done);
             }
         }
 
-        function extractZip(o, next) {
+        function extractZip(done) {
             try {
                 if (grunt.file.exists(path.join(o.cacheDir, o.svgEntry))) {
                     grunt.log.writeln('Svg icons found. Skip extraction.');
@@ -84,20 +88,61 @@ module.exports = function (grunt) {
                     zip.extractAllTo(o.cacheDir, true);
                     grunt.log.writeln(chalk.green(' ✓ ') + o.zipFileName + ' extracted to ' + o.cacheDir);
                 }
-                next();
+                done();
             } catch (e) {
-                next(e);
+                done(e);
             }
         }
 
-        function processSvg(o, next) {
-            var processFn = require('../lib/svgmin');
-            processFn(grunt, o, next);
+        function processSvg(done) {
+            var svgSrcPattern = path.join(o.cacheDir, o.svgEntry, '*.svg'),
+                svgo = new SVGO(),
+                totalSaved = 0;
+
+            eachAsync(grunt.file.expand(svgSrcPattern), function (src, i, next) {
+                var svg = grunt.file.read(src),
+                    fName = path.basename(src);
+
+                svg = svg.replace(/viewBox="[\d\s\.]+"/, '')
+                    .replace(/enable\-background="new[\d\s\.]+"/, '');
+
+                svgo.optimize(svg, function (result) {
+                    if (result.error) {
+                        return grunt.warn('Error parsing SVG: ' + result.error);
+                    }
+
+                    totalSaved += svg.length - result.data.length;
+                    grunt.file.write(path.join(o.destSvg, fName), result.data);
+                    next();
+                });
+
+            }, done);
+
+            grunt.log.writeln(chalk.green(' ✓ ') + 'Total saved: ' + chalk.green(prettyBytes(totalSaved)));
         }
 
-        function generateFont(o, next) {
-            var generatorFn = require('../lib/fontgenerator');
-            generatorFn(grunt, o, next);
+        function generateFont(done) {
+            var generatorFn = require('./lib/fontgenerator');
+            generatorFn(grunt, o, done);
+        }
+
+        function generateScss(done) {
+            var template = grunt.file.read(path.join(__dirname, 'templates', 'style.tpl')),
+                scss;
+
+            o.glyphs = o.glyphs.map(function (str) {
+                return str.trim().replace(/\s+/g, '-');
+            });
+
+            scss = grunt.template.process(template, { data: {
+                glyphs: o.glyphs,
+                codepoints: o.codepoints,
+                fontName: o.fontName,
+                fontSize: o.fontSize
+            }});
+
+            grunt.file.write(o.destScss, scss);
+            done();
         }
 
     });

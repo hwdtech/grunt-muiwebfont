@@ -28,18 +28,21 @@ module.exports = function (grunt) {
         this.requiresConfig([this.name, this.target, 'dest'].join('.'));
 
         var o = this.options({
-            fontName: 'modernuiicons',
-            rename: path.basename,
-            size: 76,
-            cacheDir: temp.mkdirSync()
-        });
+                fontName: 'modernuiicons',
+                rename: path.basename,
+                size: 76,
+                cacheDir: temp.mkdirSync()
+            }),
+            p = this.data;
 
         _.extend(o, {
             zipUrl: 'https://github.com/Templarian/WindowsIcons/archive/master.zip',
             svgEntry: 'WindowsIcons-master/WindowsPhone/svg',
             compressedEntry: 'svgmin',
             zipFileName: 'modernuiicons.zip',
-            destDir: this.files[0].dest
+            destDir: this.files[0].dest,
+            destSvg: p.destSvg || 'images/svg',
+            destScss: p.destScss || 'styles/'
         });
 
         grunt.file.mkdir(o.cacheDir);

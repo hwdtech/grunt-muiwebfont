@@ -20,7 +20,9 @@ module.exports = function (grunt) {
                 cacheDir: '.tmp'
             },
             all: {
-                dest: '.tmp/fonts'
+                dest: 'resources/fonts',
+                destSvg: 'resources/images/svg',
+                destScss: 'sass/etc/'
             }
         }
     });
